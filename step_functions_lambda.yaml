@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template create a state machine to execute a lambda function
+Resources:
+    StateMachineExecutionRole:
+        Type: "AWS::IAM::Role"
+        Properties:
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                - Effect: "Allow"
+                  Principal:
+                      Service:
+                      - states.amazonaws.com
+                  Action: "sts:AssumeRole"
+            Path: "/"
+            RoleName: StateMachineExecutionRoleWithLambdaAccess
+            Policies:
+            - PolicyName: StatesExecutionPolicyWithLambdaAccessPolicy
+              PolicyDocument:
+                  Version: "2012-10-17"
+                  Statement:
+                  - Effect: Allow
+                    Action: "lambda:InvokeFunction"
+                    Resource: "*"
+    InsightsStateMachine :
+        Type : AWS::StepFunctions::StateMachine
+        Properties :
+             StateMachineName : StateMachineLambda
+             DefinitionString:
+                Fn::Sub: |
+                  {
+                    "StartAt": "MyLambda",
+                    "States": {
+                      "MyLambda": {
+                        "Type": "Task",
+                        "Resource": "arn:aws:lambda:REGION:ACCOUNT_ID:function:FUNCTION_NAME",
+                        "End": true
+                      }
+                    }
+                  }
+             RoleArn: !GetAtt [ StateMachineExecutionRole, Arn ]
