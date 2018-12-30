@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template create a state machine to execute a Pass state
+Resources:
+    StateMachineExecutionRole:
+        Type: "AWS::IAM::Role"
+        Properties:
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                - Effect: "Allow"
+                  Principal:
+                      Service:
+                      - states.amazonaws.com
+                  Action: "sts:AssumeRole"
+            Path: "/"
+            RoleName: StateMachineExecutionRoleWithNoPermissionsAccess
+            Policies:
+            - PolicyName: StatesExecutionPolicyWithNoPermissionsAccessPolicy
+              PolicyDocument:
+                  Version: "2012-10-17"
+                  Statement:
+                  - Effect: Deny
+                    Action: "*"
+                    Resource: "*"
+    InsightsStateMachine :
+        Type : AWS::StepFunctions::StateMachine
+        Properties :
+             StateMachineName : HelloWorld
+             DefinitionString:
+                Fn::Sub: |
+                  {
+                    "StartAt": "HelloWorld",
+                    "States": {
+                      "HelloWorld": {
+                        "Type": "Pass",
+                        "Result": "Hello World!",
+                        "End": true
+                      }
+                    }
+                  }
+               RoleArn: !GetAtt [ StateMachineExecutionRole, Arn ]
